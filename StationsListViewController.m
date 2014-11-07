@@ -12,7 +12,7 @@
 
 #define kJSONURL @"http://www.bayareabikeshare.com/stations/json"
 
-@interface StationsListViewController () <CLLocationManagerDelegate, UITabBarDelegate, UITableViewDataSource>
+@interface StationsListViewController () <CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property (strong, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) IBOutlet UISearchBar *searchBar;
@@ -59,6 +59,16 @@
     return cell;
 }
 
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSDictionary *itemDict = self.tableViewArray[indexPath.row];
+    [self performSegueWithIdentifier:@"ToMapSegue" sender:(NSDictionary *)itemDict];
+
+    //    GIVE AN ERROR: error: property 'row' not found on object of type 'NSIndexPath *' whY????
+
+}
+
+
 #pragma mark - CoreLocation
 
 -(void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
@@ -70,11 +80,12 @@
 {
     for (CLLocation *location in  locations)
     {
-        if (location.verticalAccuracy <1000 && location.horizontalAccuracy < 1000)
+        if (location.verticalAccuracy <100 && location.horizontalAccuracy < 100)
         {
             self.navigationItem.title = @"Located.";
 //            [self reverseGeocode:location];
             [self.locationManager stopUpdatingLocation];
+
 
             break;
         }
@@ -115,9 +126,11 @@
     [self presentViewController:alert animated:YES completion:nil];
 }
 
--(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(NSDictionary *)sender
 {
-
+    MapViewController *vc = segue.destinationViewController;
+    vc.locationData = sender;
+    
 }
 
 
