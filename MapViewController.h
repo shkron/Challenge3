@@ -7,8 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <MapKit/MapKit.h>
+@import CoreLocation;
 
 @interface MapViewController : UIViewController
 @property NSDictionary *locationData;
+@property CLLocation *myLocation;
 
 @end

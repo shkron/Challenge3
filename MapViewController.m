@@ -7,13 +7,12 @@
 //
 
 #import "MapViewController.h"
-#import <MapKit/MapKit.h>
-@import CoreLocation;
 
 @interface MapViewController () <MKMapViewDelegate>
 
 @property (strong, nonatomic) IBOutlet MKMapView *mapView;
 @property (strong, nonatomic) MKMapItem *myMapItem;
+@property (strong, nonatomic) MKPointAnnotation *myAnnotation;
 
 @end
 
@@ -24,17 +23,33 @@
 
     self.myMapItem = [MKMapItem mapItemForCurrentLocation];
 
-    CLLocationDegrees latitude= [self.locationData[@"latitude"] doubleValue];
-     CLLocationDegrees longtitude = [self.locationData[@"longtitude"] doubleValue];
+    CLLocationDegrees latitude = [self.locationData[@"latitude"] doubleValue];
+     CLLocationDegrees longitude = [self.locationData[@"longitude"] doubleValue];
 
 
-    MKPointAnnotation *myAnnotation = [[MKPointAnnotation alloc] init];
+    MKPointAnnotation *bikeAnnotation = [[MKPointAnnotation alloc] init];
 
-    CLLocationCoordinate2D coord = CLLocationCoordinate2DMake(latitude, longtitude);
+    CLLocationCoordinate2D coord = CLLocationCoordinate2DMake(latitude, longitude);
 
-    myAnnotation.coordinate = coord;
-   myAnnotation.title = @"YOU";
-    [self.mapView addAnnotation:myAnnotation];
+    bikeAnnotation.coordinate = coord;
+    bikeAnnotation.title = self.locationData[@"stAddress1"];
+
+    CLLocationCoordinate2D center = bikeAnnotation.coordinate;
+    MKCoordinateSpan coordinateSpan;
+    coordinateSpan.latitudeDelta = 0.5;
+    coordinateSpan.longitudeDelta = 0.5;
+    MKCoordinateRegion region = MKCoordinateRegionMake(center, coordinateSpan);
+//    CLLocationDegrees myLatitude = self.myMapItem.placemark.coordinate.latitude;
+//    CLLocationDegrees myLongitude = self.myMapItem.placemark.coordinate.longitude;
+//    CLLocationCoordinate2D myCoord = CLLocationCoordinate2DMake(self.myLocation.coordinate, myLongitude);
+    self.myAnnotation = [[MKPointAnnotation alloc] init];
+    self.myAnnotation.coordinate = self.myLocation.coordinate;
+    self.myAnnotation.title = @"YOU";
+
+
+    [self.mapView addAnnotation:self.myAnnotation];
+    [self.mapView addAnnotation:bikeAnnotation];
+    [self.mapView setRegion:region animated:YES];
 
 
     
@@ -45,10 +60,19 @@
 //MARK: pin callout accessory and image change
 -(MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation
 {
+
     MKPinAnnotationView *pin = [[MKPinAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:nil];
     pin.canShowCallout = YES;
     pin.rightCalloutAccessoryView = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
-    pin.image = [UIImage imageNamed:@"bikeImage"];
+
+    if([annotation isEqual:self.myAnnotation])
+    {
+        
+    }
+    else
+    {
+        pin.image = [UIImage imageNamed:@"bikeImage"];
+    }
     return pin;
     
 }

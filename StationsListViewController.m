@@ -18,6 +18,7 @@
 @property (strong, nonatomic) IBOutlet UISearchBar *searchBar;
 @property (strong, nonatomic) NSArray *tableViewArray;
 @property CLLocationManager *locationManager;
+@property CLLocation *myLocation;
 
 
 @end
@@ -32,6 +33,7 @@
     self.locationManager.delegate = self;
     [self.locationManager startUpdatingLocation];
     self.navigationItem.title = @"Locating you...";
+    self.myLocation = [[CLLocation alloc] init];
 
     [self dataWithURLString:kJSONURL];
 
@@ -54,15 +56,15 @@
     NSDictionary *cellData = self.tableViewArray[indexPath.row];
     cell.imageView.image = [UIImage imageNamed:@"bikeImage"];
     cell.textLabel.text = cellData[@"stAddress1"];
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@",cellData[@"availableBikes"]];
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"Available: %@",cellData[@"availableBikes"]];
     
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSDictionary *itemDict = self.tableViewArray[indexPath.row];
-    [self performSegueWithIdentifier:@"ToMapSegue" sender:(NSDictionary *)itemDict];
+//    NSDictionary *itemDict = self.tableViewArray[indexPath.row];
+//    [self performSegueWithIdentifier:@"ToMapSegue" sender:(NSDictionary *)itemDict];
 
     //    GIVE AN ERROR: error: property 'row' not found on object of type 'NSIndexPath *' whY????
 
@@ -83,6 +85,7 @@
         if (location.verticalAccuracy <100 && location.horizontalAccuracy < 100)
         {
             self.navigationItem.title = @"Located.";
+            self.myLocation = location;
 //            [self reverseGeocode:location];
             [self.locationManager stopUpdatingLocation];
 
@@ -126,10 +129,15 @@
     [self presentViewController:alert animated:YES completion:nil];
 }
 
--(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(NSDictionary *)sender
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     MapViewController *vc = segue.destinationViewController;
-    vc.locationData = sender;
+
+    NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
+    NSDictionary *itemDict = self.tableViewArray[indexPath.row];
+
+    vc.locationData = itemDict;
+    vc.myLocation = self.myLocation;
     
 }
 
