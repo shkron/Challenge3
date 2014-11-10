@@ -82,7 +82,7 @@
 -(void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control
 {
     CLLocationCoordinate2D center = [view.annotation coordinate];
-    NSString *busStopTitle = [view.annotation title];
+//    NSString *busStopTitle = [view.annotation title];
 //    NSDictionary *busStopDict = [self.detailByTitleDict objectForKey:busStopTitle];
 //    BusStop *busStopInfo = [[BusStop alloc] initWithDictionary:busStopDict];
 //    [self performSegueWithIdentifier:@"bustStopDetailInfo" sender:(BusStop *)busStopInfo];
@@ -92,6 +92,12 @@
     coordinateSpan.longitudeDelta = .05;
 
     MKCoordinateRegion region = MKCoordinateRegionMake(center, coordinateSpan);
+
+
+    MKPlacemark *currentPlacemark = [[MKPlacemark alloc] initWithCoordinate:center addressDictionary:nil];
+    MKMapItem *currentMapItem = [[MKMapItem alloc] initWithPlacemark:currentPlacemark];
+    [self getDirectionsTo:currentMapItem];
+
     [self.mapView setRegion:region animated:YES];
 
 }
@@ -127,6 +133,45 @@
     
     
 }
+
+-(void)getDirectionsTo:(MKMapItem *)destinationItem
+{
+    MKDirectionsRequest *request = [MKDirectionsRequest new];
+    request.source = self.myMapItem;  //[MKMapItem mapItemForCurrentLocation];
+    request.destination = destinationItem;
+
+    MKDirections *directions = [[MKDirections alloc] initWithRequest:request];
+
+    [directions calculateDirectionsWithCompletionHandler:^(MKDirectionsResponse *response, id error)
+     {
+         NSArray *routes = response.routes;
+         MKRoute *route = routes.firstObject;
+
+
+         int x = 1;
+         NSMutableString *directionsString = [NSMutableString string];
+
+         for (MKRouteStep *step in route.steps)
+         {
+
+             [directionsString appendFormat:@"%d: %@\n", x, step.instructions];
+             x++;
+
+
+             NSLog(@"%@", step.instructions);
+         }
+         [self directionsAlert:directionsString]; //alertmethod
+     }];
+}
+
+-(void)directionsAlert:(NSString *)message
+{
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Directions" message:message preferredStyle:UIAlertControllerStyleAlert];
+    UIAlertAction *okButton = [UIAlertAction actionWithTitle:@"OK!" style:UIAlertActionStyleDefault handler:nil];
+    [alert addAction:okButton];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
 
 
 @end
