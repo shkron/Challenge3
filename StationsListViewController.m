@@ -12,13 +12,14 @@
 
 #define kJSONURL @"http://www.bayareabikeshare.com/stations/json"
 
-@interface StationsListViewController () <CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource>
+@interface StationsListViewController () <CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate>
 
 @property (strong, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) IBOutlet UISearchBar *searchBar;
-@property (strong, nonatomic) NSArray *tableViewArray;
+@property (strong, nonatomic) NSMutableArray *tableViewArray;
 @property CLLocationManager *locationManager;
 @property CLLocation *myLocation;
+@property (strong, nonatomic) NSArray *originalDataArray;
 
 
 @end
@@ -95,7 +96,35 @@
     }
 }
 
+#pragma mark - searchbar delegate method
 
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText;
+{
+    searchText = self.searchBar.text;
+
+    if (searchText.length == 0)
+    {
+        self.tableViewArray = [self.originalDataArray mutableCopy];
+    }
+    else
+    {
+        [self.tableViewArray removeAllObjects];
+        for (int i = 0; i < self.originalDataArray.count; i++)
+
+//        for (NSDictionary *dict in self.originalDataArray)
+        {
+            NSDictionary *dict = [[NSDictionary alloc] init];
+            dict = self.originalDataArray[i];
+            if ([[dict[@"stAddress1"] lowercaseString] containsString:[searchText lowercaseString]])
+            {
+                [self.tableViewArray addObject:dict];
+            }
+        }
+
+    }
+
+    [self.tableView reloadData];
+}
 
 #pragma mark - custom methods
 
@@ -113,7 +142,9 @@
                                            else
                                            {
                                                NSDictionary *rawJSONDict = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
-                                               self.tableViewArray = rawJSONDict[@"stationBeanList"];
+                                               self.originalDataArray = [NSArray array];
+                                               self.originalDataArray = rawJSONDict[@"stationBeanList"];
+                                               self.tableViewArray = [self.originalDataArray mutableCopy];
                                                [self.tableView reloadData];
                                            }
                                            
